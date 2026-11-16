@@ -1,0 +1,6 @@
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+# OS files
+.DS_Store
