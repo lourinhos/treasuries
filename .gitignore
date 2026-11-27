@@ -2,5 +2,14 @@
 *.aux
 *.log
 *.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+# Generated LaTeX and PDFs (rebuild with src/render_report.py)
+paper/build/
+# Python
+__pycache__/
+*.pyc
+.venv/
 # OS files
 .DS_Store

@@ -2,7 +2,7 @@
 """Reproducible next-day Treasury yield-change forecast experiment.
 
 Usage:
-  python analysis.py --csv par-yield-curve-rates-2020-2023.csv --out results_verified.json
+  python src/analysis.py --csv data/par-yield-curve-rates-2020-2023.csv --out results/results_verified.json
 
 The 2023 test year is not used in model tuning; only earlier observations are
 used as lagged features for later 2023 forecasts.
@@ -11,10 +11,9 @@ from __future__ import annotations
 import argparse, json, pathlib
 import numpy as np
 import pandas as pd
+from sklearn.dummy import DummyRegressor
 from sklearn.linear_model import LinearRegression
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
+from knn import TieAwareKNN
 
 URL = 'https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rate-archives/par-yield-curve-rates-2020-2023.csv'
 def from_csv(path):
@@ -44,8 +43,18 @@ def rmse(y,yhat):
 
 def model_fit(name,k=None):
     if name=='OLS': return LinearRegression()
-    if name=='kNN': return make_pipeline(StandardScaler(),KNeighborsRegressor(n_neighbors=k, weights='uniform'))
+    # Scaling is fitted inside each training window; ties at the k-th distance are averaged.
+    if name=='kNN': return TieAwareKNN(k)
+    # Training-mean forecast: the constant drift of the training window.
+    if name=='Mean': return DummyRegressor(strategy='mean')
     raise ValueError(name)
+
+MODELS=('OLS','kNN','Mean')
+
+def paired_quarters(vals,zero):
+    """Per-quarter RMSE(model) - RMSE(zero): a direct measure of the model difference."""
+    d=np.asarray(vals)-np.asarray(zero)
+    return {'diffs':d.tolist(),'mean':float(d.mean()),'sd':float(d.std(ddof=1)),'wins':int((d<0).sum())}
 
 def paired_block_ci(y,yhat,block=20,B=10000,seed=5420):
     """Delta=RMSE(model)-RMSE(zero); same circular blocks for paired errors."""
@@ -74,7 +83,8 @@ def evaluate(df):
     # Tune each lag p (OLS and kNN) strictly on the eight within-2020--22 quarters.
     for p in range(1,6):
         z,cols=design(df,p)
-        for name,k in [('OLS',None)]+[('kNN',j) for j in (3,5,10,20,40)]:
+        # The training mean ignores the lags, so it is scored once (on the p=1 rows).
+        for name,k in [('OLS',None)]+[('kNN',j) for j in (3,5,10,20,40)]+([('Mean',None)] if p==1 else []):
             vals=[]
             for yr,q in quarters:
                 first=(z.year < yr)|((z.year==yr)&(z.quarter<q))
@@ -89,12 +99,14 @@ def evaluate(df):
                 'sd':np.std(vals,ddof=1).item(),'quarters':vals}
     # select mean quarterly RMSE; break ties in favor of smaller p and smaller k.
     best={}
-    for name in ('OLS','kNN'):
+    zero=[r['zero_rmse'] for r in quarters_result]
+    for name in MODELS:
         candidates=[v for v in params.values() if v['name']==name]
-        best[name]=min(candidates,key=lambda x:(x['mean'],x['p'],x['k'] or 0))
+        best[name]=dict(min(candidates,key=lambda x:(x['mean'],x['p'],x['k'] or 0)))
+        best[name]['paired']=paired_quarters(best[name]['quarters'],zero)
     # Only after all tuning is fixed, fit all 2020--22 and evaluate 2023 once.
     test={}
-    for name in ('OLS','kNN'):
+    for name in MODELS:
         p=best[name]['p']; z,cols=design(df,p)
         tr=z[z.year<=2022]; te=z[z.year==2023]
         m=model_fit(name,best[name]['k'])
@@ -105,6 +117,8 @@ def evaluate(df):
         res['sensitivity']={str(b):paired_block_ci(te.dy,pred,block=b,B=5000)['ci'] for b in (10,30)}
         if name=='OLS':
             res['coef']=m.coef_.tolist(); res['intercept']=float(m.intercept_)
+        if name=='Mean':
+            res['constant']=float(pred[0])
         test[name]=res
     # Include volatility by year of the actual changes.
     d=df.copy();d['dy']=d.yield_bp.diff()
@@ -115,9 +129,10 @@ def evaluate(df):
             'source':'10-year UST daily par yield; 2020--2023'}
 
 def main():
+    root=pathlib.Path(__file__).resolve().parents[1]
     ap=argparse.ArgumentParser()
-    ap.add_argument('--csv',required=True,help='Original Treasury CSV file path')
-    ap.add_argument('--out',default='results.json')
+    ap.add_argument('--csv',default=root/'data'/'par-yield-curve-rates-2020-2023.csv',help='Original Treasury CSV file path')
+    ap.add_argument('--out',default=root/'results'/'results.json')
     args=ap.parse_args()
     df=from_csv(args.csv)
     result=evaluate(df)
@@ -128,10 +143,11 @@ def main():
     for p in range(1,6):
         r=result['validation'][f'OLS:p={p}']
         print(f'OLS p={p}: {r["mean"]:.3f} +/- {r["sd"]:.3f}')
-    for name in ('OLS','kNN'):
+    for name in MODELS:
         p=result['selected'][name]
         r=result['test'][name]
-        print(f'{name} selected p={p["p"]} k={p["k"]} CV={p["mean"]:.3f}; '
+        print(f'{name} selected p={p["p"]} k={p["k"]} CV={p["mean"]:.3f} '
+              f'(paired vs zero {p["paired"]["mean"]:+.3f} +/- {p["paired"]["sd"]:.3f}, wins {p["paired"]["wins"]}/8); '
               f'2023 RMSE={r["model_rmse"]:.3f}, zero={r["zero_rmse"]:.3f}, '
               f'Delta={r["delta"]:.3f}, CI={r["ci"]}')
 
