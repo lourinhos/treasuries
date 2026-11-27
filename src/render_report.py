@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
-"""Render the report template and validation graph from analysis.py results JSON."""
-import argparse,json,pathlib, subprocess
+"""Render the report template and validation graph from analysis.py results JSON.
+
+Filled LaTeX and compiled PDFs go to paper/build/ (not tracked); figures go to paper/figures/.
+"""
+import argparse,json,os,pathlib, subprocess
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+ROOT=pathlib.Path(__file__).resolve().parents[1]
+PAPER=ROOT/'paper'; FIGURES=PAPER/'figures'; BUILD=PAPER/'build'
 ap=argparse.ArgumentParser()
-ap.add_argument('--results',default='results_verified.json')
+ap.add_argument('--results',default=ROOT/'results'/'results_verified.json')
 ap.add_argument('--compile',action='store_true')
-ap.add_argument('--template',default='report_template.tex',help='LaTeX template with __PLACEHOLDER__ fields')
-ap.add_argument('--out',default='report.tex',help='filled LaTeX file to write (and compile)')
-ap.add_argument('--figure',default='validation_rmse',help='basename for the validation figure (.pdf and .png)')
+ap.add_argument('--template',default=PAPER/'report_template.tex',help='LaTeX template with __PLACEHOLDER__ fields')
+ap.add_argument('--out',default=BUILD/'report.tex',help='filled LaTeX file to write (and compile)')
+ap.add_argument('--figure',default='validation_rmse',help='basename for the validation figure (.pdf and .png), saved in paper/figures/')
 ap.add_argument('--no-knn',action='store_true',help='omit kNN from the validation figure')
 args=ap.parse_args()
 r=json.loads(pathlib.Path(args.results).read_text())
@@ -36,7 +41,8 @@ for p in range(1,6):
 for year in range(2020,2024):vars[f'Y{year}']=f(r['yearly_change'][str(year)]['rmse_zero'])
 for key,val in vars.items():T=T.replace('__'+key+'__',val)
 assert '__' not in T, [x for x in T.split() if '__' in x]
-pathlib.Path(args.out).write_text(T)
+out=pathlib.Path(args.out); out.parent.mkdir(parents=True,exist_ok=True)
+out.write_text(T)
 fig,ax=plt.subplots(figsize=(6.8,2.55))
 xs=np.arange(8)
 ax.plot(xs, zero, color='#111111', linewidth=1.7, linestyle='--', marker='o', markersize=4, label='Zero change')
@@ -50,11 +56,14 @@ ax.spines[['right','top']].set_visible(False)
 ax.grid(axis='y',color='#dddddd',linewidth=.55)
 ax.legend(loc='upper left',fontsize=8,frameon=False,ncol=3)
 fig.tight_layout(pad=0.7)
-fig.savefig(f'{args.figure}.pdf',bbox_inches='tight')
-fig.savefig(f'{args.figure}.png',dpi=160,bbox_inches='tight')
+FIGURES.mkdir(parents=True,exist_ok=True)
+fig.savefig(FIGURES/f'{args.figure}.pdf',bbox_inches='tight')
+fig.savefig(FIGURES/f'{args.figure}.png',dpi=160,bbox_inches='tight')
 plt.close(fig)
 if args.compile:
+ # Compile next to the filled .tex; let LaTeX find the style file and figures in paper/.
+ env={**os.environ,'TEXINPUTS':f'{PAPER}{os.pathsep}{FIGURES}{os.pathsep}'}
  for i in range(2):
-  result=subprocess.run(['pdflatex','-interaction=nonstopmode','-halt-on-error',args.out],text=True,capture_output=True)
+  result=subprocess.run(['pdflatex','-interaction=nonstopmode','-halt-on-error',out.name],cwd=out.parent,env=env,text=True,capture_output=True)
   if result.returncode: print(result.stdout[-5000:]);raise SystemExit(result.returncode)
- print('Created',pathlib.Path(args.out).with_suffix('.pdf'))
+ print('Created',out.with_suffix('.pdf'))
