@@ -1,0 +1,240 @@
+{
+  "quarters": [
+    "2022Q1",
+    "2022Q2",
+    "2022Q3",
+    "2022Q4",
+    "2023Q1",
+    "2023Q2",
+    "2023Q3",
+    "2023Q4"
+  ],
+  "by_start": {
+    "2020": {
+      "best": {
+        "Training mean": {
+          "params": {
+            "p": 1
+          },
+          "mean": 7.61232591530842,
+          "sd": 0.8087528111842542,
+          "paired_mean": -0.0007394860333168607,
+          "paired_sd": 0.02862197528043387,
+          "wins": 4,
+          "n_quarters": 8,
+          "n_candidates": 1
+        },
+        "OLS": {
+          "params": {
+            "p": 2
+          },
+          "mean": 7.606779509508449,
+          "sd": 0.7773115501786195,
+          "paired_mean": -0.006285891833288204,
+          "paired_sd": 0.08270194523515355,
+          "wins": 4,
+          "n_quarters": 8,
+          "n_candidates": 5
+        },
+        "kNN": {
+          "params": {
+            "p": 2,
+            "k": 320
+          },
+          "mean": 7.6035975987872835,
+          "sd": 0.8150008601836277,
+          "paired_mean": -0.009467802554454452,
+          "paired_sd": 0.035121916907717834,
+          "wins": 4,
+          "n_quarters": 8,
+          "n_candidates": 40
+        },
+        "Random forest": {
+          "params": {
+            "p": 2,
+            "leaf": 160,
+            "mf": "sqrt"
+          },
+          "mean": 7.608481554514729,
+          "sd": 0.7921831167914313,
+          "paired_mean": -0.004583846827008631,
+          "paired_sd": 0.019118133202095645,
+          "wins": 6,
+          "n_quarters": 8,
+          "n_candidates": 27
+        },
+        "Ridge, rich": {
+          "params": {
+            "p": 5,
+            "alpha": 10000.0
+          },
+          "mean": 7.603216070200948,
+          "sd": 0.8022597907660185,
+          "paired_mean": -0.009849331140789674,
+          "paired_sd": 0.04210888304440278,
+          "wins": 4,
+          "n_quarters": 8,
+          "n_candidates": 55
+        },
+        "Lasso, rich": {
+          "params": {
+            "p": 2,
+            "alpha": 0.31622776601683794
+          },
+          "mean": 7.596324064513258,
+          "sd": 0.7883606694505254,
+          "paired_mean": -0.01674133682847967,
+          "paired_sd": 0.035292053827570044,
+          "wins": 6,
+          "n_quarters": 8,
+          "n_candidates": 75
+        },
+        "kNN, rich": {
+          "params": {
+            "p": 1,
+            "k": 80
+          },
+          "mean": 7.5932066266541565,
+          "sd": 0.8804289410064098,
+          "paired_mean": -0.019858774687581016,
+          "paired_sd": 0.11220497981385279,
+          "wins": 4,
+          "n_quarters": 8,
+          "n_candidates": 40
+        },
+        "Random forest, rich": {
+          "params": {
+            "p": 3,
+            "leaf": 160,
+            "mf": "sqrt"
+          },
+          "mean": 7.607358759698757,
+          "sd": 0.8086409169046721,
+          "paired_mean": -0.0057066416429804034,
+          "paired_sd": 0.03510269672828498,
+          "wins": 6,
+          "n_quarters": 8,
+          "n_candidates": 30
+        }
+      },
+      "zero": {
+        "mean": 7.613065401341737,
+        "sd": 0.7965767093524018
+      },
+      "seconds": 99.2
+    },
+    "2021": {
+      "best": {
+        "Training mean": {
+          "params": {
+            "p": 1
+          },
+          "mean": 7.604150024803874,
+          "sd": 0.829366363681937,
+          "paired_mean": -0.008915376537863007,
+          "paired_sd": 0.06208902575941907,
+          "wins": 5,
+          "n_quarters": 8,
+          "n_candidates": 1
+        },
+        "OLS": {
+          "params": {
+            "p": 1
+          },
+          "mean": 7.618409815736658,
+          "sd": 0.8319506583768249,
+          "paired_mean": 0.005344414394921504,
+          "paired_sd": 0.05316873647267344,
+          "wins": 4,
+          "n_quarters": 8,
+          "n_candidates": 5
+        },
+        "kNN": {
+          "params": {
+            "p": 1,
+            "k": 160
+          },
+          "mean": 7.597517609275521,
+          "sd": 0.8375227873031069,
+          "paired_mean": -0.015547792066217259,
+          "paired_sd": 0.056222561980899574,
+          "wins": 5,
+          "n_quarters": 8,
+          "n_candidates": 40
+        },
+        "Random forest": {
+          "params": {
+            "p": 4,
+            "leaf": 40,
+            "mf": "sqrt"
+          },
+          "mean": 7.590753122256307,
+          "sd": 0.8415002291549845,
+          "paired_mean": -0.022312279085430653,
+          "paired_sd": 0.07736466907973291,
+          "wins": 5,
+          "n_quarters": 8,
+          "n_candidates": 27
+        },
+        "Ridge, rich": {
+          "params": {
+            "p": 2,
+            "alpha": 10000.0
+          },
+          "mean": 7.603604073556871,
+          "sd": 0.8264512928020584,
+          "paired_mean": -0.009461327784866747,
+          "paired_sd": 0.060097528159949364,
+          "wins": 5,
+          "n_quarters": 8,
+          "n_candidates": 55
+        },
+        "Lasso, rich": {
+          "params": {
+            "p": 1,
+            "alpha": 0.31622776601683794
+          },
+          "mean": 7.600737263606173,
+          "sd": 0.8414276071729476,
+          "paired_mean": -0.012328137735564404,
+          "paired_sd": 0.08476658976420809,
+          "wins": 5,
+          "n_quarters": 8,
+          "n_candidates": 75
+        },
+        "kNN, rich": {
+          "params": {
+            "p": 1,
+            "k": 40
+          },
+          "mean": 7.583473420960511,
+          "sd": 0.8802427002447766,
+          "paired_mean": -0.029591980381227345,
+          "paired_sd": 0.1531187429267245,
+          "wins": 5,
+          "n_quarters": 8,
+          "n_candidates": 40
+        },
+        "Random forest, rich": {
+          "params": {
+            "p": 3,
+            "leaf": 160,
+            "mf": "sqrt"
+          },
+          "mean": 7.603426158746318,
+          "sd": 0.8269353712859272,
+          "paired_mean": -0.00963924259541915,
+          "paired_sd": 0.05807358061681668,
+          "wins": 5,
+          "n_quarters": 8,
+          "n_candidates": 30
+        }
+      },
+      "zero": {
+        "mean": 7.613065401341737,
+        "sd": 0.7965767093524018
+      },
+      "seconds": 56.2
+    }
+  }
+}
